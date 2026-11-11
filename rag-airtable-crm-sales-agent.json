@@ -1,0 +1,389 @@
+{
+  "name": "Haider Gemstone - RAG + Airtable CRM Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        400
+      ],
+      "id": "84841e35-296f-4c0b-bd68-29af4e3eda97",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -672,
+        400
+      ],
+      "id": "ccb58c6a-23af-4f8a-ba72-5c8f86e6fd35",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        528
+      ],
+      "id": "ac081e66-af1a-408d-8af3-96b1d0a57724",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        64,
+        256
+      ],
+      "id": "b37edf8d-2667-4b0f-8cdf-214dc10846b4",
+      "name": "KB_Vector_Ingestion"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "# HAIDER GEMSTONE - COMPLETE KNOWLEDGE BASE & FAQ GUIDE\n\n## 1. DUKAN KA TAARUF AUR ADDRESS\n- Brand: Haider Gemstone\n- Shop Address: Shop Number 27 to 31, Near MC Model High School, Burewala City, Punjab, Pakistan.\n- WhatsApp: YOUR_WHATSAPP_NUMBER\n- Specialty: 100% Natural Gemstones (Small & Big sizes) aur high-quality Thai Cutting.\n\n## 2. RATES AUR PATTHAR\n- Aqeeq: Rs. 300 se Rs. 5,000 tak (Yemeni, Sulemani, Shajri, Zard, Surkh).\n- Feroza: Rs. 500 se Rs. 50,000 tak (Irani Nishapuri, Tibeti).\n- Yaqoot (Burma/Africa), Neelam (Ceylon/Thai cut), Zamarrud (Swat/Panjshir): Wazan (carat/ratti), clarity aur cutting ke hisab se rate tay hota hai.\n\n## 3. RINGS & CUSTOMIZATION\n- Metal: 925 Sterling Silver (Khalis Chandi), Handmade aur Turkish/Irani designs.\n- Ring Size: Millimeter (mm) naap ya sunaar se pata kiya ja sakta hai.\n\n## 4. CERTIFICATION, PAYMENT & RETURN POLICY\n- Lab Certificate: Customer ki demand par banwa kar diya jata hai, charges customer ada karega.\n- Payment: COD aur Online dono dastiyab hain. Sirf loose stones par NO advance. Custom silver rings par advance payment zaroori hai.\n- Exchange Policy: Agar koi masla ho toh 7 din ke andar exchange ki sahulat maujood hai.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        512
+      ],
+      "id": "a5696588-e44e-4086-80ea-ef3dff20d67c",
+      "name": "Gemstone_Catalog_ Loader"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this tool to search internal information about Haider Gemstone shop location in Burewala, gemstone varieties, prices, 7-day exchange policy, and custom 925 silver ring rules.",
+        "memoryKey": {
+          "__rl": true,
+          "value": "vector_store_key",
+          "mode": "list",
+          "cachedResultName": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        304
+      ],
+      "id": "dd4dcb0f-71b1-46fc-9885-77fb19a3dab3",
+      "name": "RAG_Knowledge_  Retriever"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        112
+      ],
+      "id": "1ccb33b5-c7ea-4ddd-9489-0b79f97e6629",
+      "name": "Manual_KB_Sync_Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -928,
+        192
+      ],
+      "id": "e91184aa-6e94-481b-8b67-4e38d20d4c04",
+      "name": "Customer_Chat_Trigger",
+      "webhookId": "ff8de96d-4c43-485f-bf36-302e25386ce9"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are the official AI Sales & Customer Support Assistant for \"Haider Gemstone\" located in Burewala, Pakistan.\n\nYour Responsibilities:\n1. When a user asks about gemstone varieties, natural authenticity, origins, prices, or policies, use the RAG / Knowledge Base tool to find accurate information.\n2. When a user wants to place an order, shares their details (Name, Phone number, City, Gemstone required), use the Airtable CRM tool to save the lead.\n3. Never invent gemstone prices or policies out of thin air. Always rely on the provided knowledge.\n4. Keep your responses polite, respectful, and helpful in clear Roman Urdu or English depending on how the customer speaks.\n\nIf a customer asks for a gemstone that is not listed in our knowledge base (such as Diamond / Heera), politely inform them that we specialize specifically in colored gemstones (Aqeeq, Feroza, Yaqoot, Neelam, Zamarrud, etc.) and silver rings, but for special custom sourcing inquiries they can contact WhatsApp YOUR_WHATSAPP_NUMBER."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -688,
+        192
+      ],
+      "id": "f5a28864-e919-402e-a57b-f0df0cedd3b9",
+      "name": "Gemstone_Sales_Agent"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to create a new lead in CRM when a customer provides their details like Name, Phone number, City, or Gemstone requirement.",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_BASE_ID",
+          "mode": "list",
+          "cachedResultName": "Haider Gemstone CRM",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_AIRTABLE_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/YOUR_AIRTABLE_BASE_ID/YOUR_AIRTABLE_TABLE_ID"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Customer_Name', `Customer's full name extracted from the chat conversation.`, 'string') }}",
+            "Phone Number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Phone_Number', `Customer's contact phone number or WhatsApp number.`, 'string') }}",
+            "City": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('City', `Customer's city or delivery location name.`, 'string') }}",
+            "Stone Required": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Stone_Required', `The specific gemstone name, variety, or size requested (e.g., Yemeni Aqeeq, Irani Feroza, Neelam).`, 'string') }}",
+            "Notes": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Notes', `Any extra details, special requests, custom ring size in mm, delivery preferences, or additional conversation notes provided by the customer.`, 'string') }}",
+            "Deal Stage": "Inquiry"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Stone Required",
+              "displayName": "Stone Required",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Deal Stage",
+              "displayName": "Deal Stage",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Inquiry",
+                  "value": "Inquiry"
+                },
+                {
+                  "name": "Hot Lead",
+                  "value": "Hot Lead"
+                },
+                {
+                  "name": "Order Placed",
+                  "value": "Order Placed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        -496,
+        400
+      ],
+      "id": "a57bb148-3d58-4e6e-a9d1-4e4c0d45c918",
+      "name": "Airtable_Lead_  Capture",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemstone_Sales_Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Gemstone_Sales_Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "RAG_Knowledge_  Retriever",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "KB_Vector_Ingestion",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemstone_Catalog_ Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "KB_Vector_Ingestion",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG_Knowledge_  Retriever": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gemstone_Sales_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual_KB_Sync_Trigger": {
+      "main": [
+        [
+          {
+            "node": "KB_Vector_Ingestion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer_Chat_Trigger": {
+      "main": [
+        [
+          {
+            "node": "Gemstone_Sales_Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable_Lead_  Capture": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gemstone_Sales_Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "dcd6848d-de6f-450f-b703-cd5c2114b8d5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "nodeGroups": [],
+  "id": "kHUN68SHj87Fowm1",
+  "tags": []
+}
